@@ -14,3 +14,7 @@ Watch a folder recursively:
 
 Watch a folder with a custom filter:  
 `dotnet CompressWatch.dll /srv/http/project/ -f *.txt,*.log`
+
+## Known Issues
+FileSystemWatcher triggers twice sometimes, because it sees certain modifications as two separate events. Compress & Watch does not filter these duplicate events and will compress your files twice.
+https://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
