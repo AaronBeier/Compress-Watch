@@ -10,7 +10,7 @@ Watch a folder:
 `dotnet CompressWatch.dll /srv/http/project/`  
 
 Watch a folder recursively:  
-`dotnet CompressWatch.dll -r /srv/http/project/`  
+`dotnet CompressWatch.dll /srv/http/project/ -r`  
 
 Watch a folder with a custom filter:  
-`dotnet CompressWatch.dll -f *.txt,*.log /srv/http/project/`
+`dotnet CompressWatch.dll /srv/http/project/ -f *.txt,*.log`

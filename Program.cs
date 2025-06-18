@@ -1,9 +1,12 @@
-﻿namespace CompressWatch {
+﻿using Spectre.Console.Cli;
 
-  internal class Program {
+namespace CompressWatch {
 
-    static void Main() {
+  internal sealed class Program {
 
+    static int Main(string[] Arguments) {
+      CommandApp<FileWatcherCommand> Application = new();
+      return Application.Run(Arguments);
     }
   }
 }
