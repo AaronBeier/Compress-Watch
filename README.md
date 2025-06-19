@@ -18,3 +18,4 @@ Watch a folder with a custom filter:
 ## Known Issues
 FileSystemWatcher triggers twice sometimes, because it sees certain modifications as two separate events. Compress & Watch does not filter these duplicate events and will compress your files twice.
 https://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
+I tried many things to fix this, including a MemoryCache idea from https://www.codeproject.com/Articles/1220093/A-Robust-Solution-for-FileSystemWatcher-Firing-Eve, but nothing really passed all my tests.

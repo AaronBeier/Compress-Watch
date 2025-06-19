@@ -25,7 +25,6 @@ namespace CompressWatch {
       public string Path { get; set; } = ".";
     }
 
-    private static readonly BinarySpinner Spinner = new();
     private readonly ManualResetEvent ExitEvent = new(false);
 
     public override int Execute(CommandContext Context, Settings Settings) {
@@ -35,7 +34,7 @@ namespace CompressWatch {
 
       using FileSystemWatcher Watcher = new(Settings.Path) {
         IncludeSubdirectories = Settings.Recursive,
-        NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite
+        NotifyFilter = NotifyFilters.LastWrite
       };
 
       Watcher.Filters.Clear();
@@ -58,35 +57,43 @@ namespace CompressWatch {
     }
 
     private void OnFileChange(object _, FileSystemEventArgs Event) {
-      AnsiConsole.Status().Spinner(Spinner).Start($"Compressing {Event.FullPath}...", _ => {
-        using (FileStream OriginalFile = File.OpenRead(Event.FullPath)) { // Using the compact using-statement will throw an exception in my experience
-          #region GZip Compression
-          string GzPath = $"{Event.FullPath}.gz";
-          using FileStream GzFile = File.Create(GzPath);
+      switch (Path.GetExtension(Event.FullPath).ToLower()) {
+        case ".gz":
+        case ".zst":
+        case ".br":
+          return; // Ignore already compressed files
+      }
+
+      using (FileStream OriginalFile = File.Open(Event.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+        #region GZip Compression
+        string GzPath = $"{Event.FullPath}.gz";
+        using (FileStream GzFile = File.Create(GzPath)) {
           using GZipStream GzStream = new(GzFile, CompressionLevel.SmallestSize);
 
           OriginalFile.CopyTo(GzStream);
           OriginalFile.Seek(0, SeekOrigin.Begin);
-          #endregion
+        }
+        #endregion
 
-          #region ZStd Compression
-          string ZstPath = $"{Event.FullPath}.zst";
-          using FileStream ZstFile = File.Create(ZstPath);
+        #region ZStd Compression
+        string ZstPath = $"{Event.FullPath}.zst";
+        using (FileStream ZstFile = File.Create(ZstPath)) {
           using CompressionStream ZstStream = new(ZstFile, Compressor.MaxCompressionLevel);
 
           OriginalFile.CopyTo(ZstStream);
           OriginalFile.Seek(0, SeekOrigin.Begin);
-          #endregion
+        }
+        #endregion
 
-          #region Brotli Compression
-          string BrPath = $"{Event.FullPath}.br";
-          using FileStream BrFile = File.Create(BrPath);
+        #region Brotli Compression
+        string BrPath = $"{Event.FullPath}.br";
+        using (FileStream BrFile = File.Create(BrPath)) {
           using BrotliStream BrStream = new(BrFile, CompressionLevel.SmallestSize);
 
           OriginalFile.CopyTo(BrStream);
-          #endregion
         }
-      });
+        #endregion
+      }
     }
   }
 }
